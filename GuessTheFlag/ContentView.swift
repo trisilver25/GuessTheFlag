@@ -13,6 +13,12 @@ struct ContentView: View {
     
     @State private var showingScore = false
     @State private var scoreTitle = ""
+    @State private var score = 0
+    @State private var msg = ""
+    
+    @State private var lastRound = false
+    @State private var round = 0
+    @State private var lastRoundTitle = ""
     
     var body: some View {
         ZStack {
@@ -56,9 +62,15 @@ struct ContentView: View {
                 Spacer()
                 Spacer()
                 
-                Text("Score: ???")
-                    .foregroundStyle(.white)
+                VStack {
+                    Text("Score: \(score)")
+                        .foregroundStyle(.white)
                     .font(.title.bold())
+                    
+                    Text("Round: \(round + 1)")
+                        .foregroundStyle(.white)
+                        .font(.title.bold())
+                }
                 
                 Spacer()
             }
@@ -67,23 +79,60 @@ struct ContentView: View {
         .alert(scoreTitle, isPresented: $showingScore) {
             Button("Continue", action: askQuestion)
         } message: {
-            Text("Your score is ???")
+                Text("\(msg)")
+        }
+        .alert(lastRoundTitle, isPresented: $lastRound) {
+            Button("Restart", action: reset)
+        } message: {
+            Text("\(msg)")
         }
     }
     
     func flagTapped(_ number: Int) {
-        if number == correctAnswer {
+        if round == 7 {
+            if number == correctAnswer {
+                score += 1
+            }
+            
+            if score == 8 {
+                lastRoundTitle = "Winner!"
+                msg = "Perfect Score!"
+            } else if score > 5 {
+                lastRoundTitle = "So close!"
+                msg = "Your score is \(score) out of 8"
+            } else {
+                lastRoundTitle = "Better luck next time"
+                msg = "Your score is \(score) out of 8, practice makes perfect try again!"
+            }
+            
+            lastRound = true
+            
+        } else if number == correctAnswer {
             scoreTitle = "Correct"
+            score += 1
+            msg = "Your score is \(score)"
+            
+            round += 1
+            showingScore = true
         } else {
-            scoreTitle = "Wrong"
+            scoreTitle = "Wrong!"
+            msg = "That's the flag of \(countries[number])"
+            
+            round += 1
+            showingScore = true
         }
         
-        showingScore = true
+        
     }
     
     func askQuestion() {
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
+    }
+    
+    func reset() {
+        score = 0
+        round = 0
     }
 }
 #Preview {
