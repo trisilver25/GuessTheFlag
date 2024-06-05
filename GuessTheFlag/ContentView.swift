@@ -123,9 +123,11 @@ struct ContentView: View {
         }
         
         
+        
     }
     
     func askQuestion() {
+        countries.remove(at: correctAnswer)
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
     }
@@ -133,6 +135,7 @@ struct ContentView: View {
     func reset() {
         score = 0
         round = 0
+        countries = ["Estonia", "France", "Germany", "Ireland", "Italy", "Nigeria", "Poland", "Spain", "UK", "Ukraine", "US"]
     }
 }
 #Preview {
