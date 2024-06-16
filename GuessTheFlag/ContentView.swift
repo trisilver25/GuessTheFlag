@@ -20,6 +20,12 @@ struct ContentView: View {
     @State private var round = 0
     @State private var lastRoundTitle = ""
     
+    @State private var animateCorrect = 0.0
+    @State private var animateOpacity = 1.0
+    @State private var besidesTheWrong = false
+    @State private var besidesTheCorrect = false
+    @State private var selectedFlag = 0
+    
     struct FlagImage: View {
         var flagName: String
         
@@ -56,10 +62,21 @@ struct ContentView: View {
                     
                     ForEach(0..<3) { number in
                         Button {
+                            selectedFlag = number
+                            
                             flagTapped(number)
                         } label: {
                             FlagImage(flagName: countries[number])
                         }
+                        // Animate when user selects the correct button
+                        .rotation3DEffect(
+                            .degrees(number == correctAnswer ? animateCorrect : 0),
+                                     axis: (x: 0.0, y: 1.0, z: 0.0)
+                        )
+                        .opacity(number != correctAnswer && besidesTheCorrect ? animateOpacity: 1)
+                        // Animate when user selects the wrong button
+                        .background(besidesTheWrong && selectedFlag == number ? Capsule(style: .circular).fill(Color.red).blur(radius: 30) : Capsule(style: .circular).fill(Color.clear).blur(radius: 0))
+                        .opacity(besidesTheWrong && selectedFlag != number ? animateOpacity : 1)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -97,6 +114,7 @@ struct ContentView: View {
     }
     
     func flagTapped(_ number: Int) {
+        
         if round == 7 {
             if number == correctAnswer {
                 score += 1
@@ -122,11 +140,22 @@ struct ContentView: View {
             
             round += 1
             showingScore = true
+            
+            withAnimation{
+                animateCorrect += 360
+                animateOpacity = 0.25
+                besidesTheCorrect = true
+            }
         } else {
             scoreTitle = "Wrong!"
             msg = "That's the flag of \(countries[number])"
             
             round += 1
+            
+            withAnimation {
+                animateOpacity = 0.25
+                besidesTheWrong = true
+            }
             showingScore = true
         }
         
@@ -135,6 +164,8 @@ struct ContentView: View {
     }
     
     func askQuestion() {
+        besidesTheCorrect = false
+        besidesTheWrong = false
         countries.remove(at: correctAnswer)
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
